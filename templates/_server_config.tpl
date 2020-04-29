@@ -5,7 +5,11 @@ version: {{ .Values.version }}
 server_config:
   address: 0.0.0.0                  # milvus server ip address (IPv4)
   port: 19530                       # milvus server port, must in range [1025, 65534]
+  {{- if .readonly }}
+  deploy_mode: {{ .Values.rodeployMode }}               # deployment type: single, cluster_readonly, cluster_writable
+  {{- else }}
   deploy_mode: {{ .Values.deployMode }}               # deployment type: single, cluster_readonly, cluster_writable
+  {{- end }}
   time_zone: {{ .Values.timeZone }}                  # time zone, must be in format: UTC+X
 
 db_config:
