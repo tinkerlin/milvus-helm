@@ -62,12 +62,16 @@ spec:
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
         volumeMounts:
+        {{- if .Values.persistence.enabled }}
         - name: milvus-data-disk
           mountPath: "{{ .Values.primaryPath }}/db"
           subPath: {{ .Values.persistence.persistentVolumeClaim.subPath | default "" }}
+        {{- end }}
+        {{- if .Values.logsPersistence.enabled }}
         - name: milvus-logs-disk
           mountPath: {{ .Values.logs.path }}
           subPath: {{ .Values.logsPersistence.persistentVolumeClaim.subPath | default "" }}
+        {{- end }}
         - name: milvus-configmap
           mountPath: /var/lib/milvus/conf/server_config.yaml
           subPath: readonly_server_config.yaml
@@ -93,20 +97,16 @@ spec:
       - name: milvus-configmap
         configMap:
           name: {{ template "milvus.fullname" . }}
+      {{- if .Values.persistence.enabled }}
       - name: milvus-data-disk
-        {{- if .Values.persistence.enabled }}
         persistentVolumeClaim:
           claimName: {{ .Values.persistence.persistentVolumeClaim.existingClaim | default (include "milvus.fullname" .) }}
-        {{- else }}
-        emptyDir: {}
-        {{- end }}
+      {{- end }}
+      {{- if .Values.logsPersistence.enabled }}
       - name: milvus-logs-disk
-        {{- if .Values.logsPersistence.enabled }}
         persistentVolumeClaim:
           claimName: {{ .Values.logsPersistence.persistentVolumeClaim.existingClaim | default printf "%s-logs" (include "milvus.fullname" . | trunc 58) }}
-        {{- else }}
-        emptyDir: {}
-        {{- end }}
+      {{- end }}
       {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 6 }}
       {{- end }}
